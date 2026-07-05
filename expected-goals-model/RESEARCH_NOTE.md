@@ -110,6 +110,18 @@ Two checks confirm the function. A shot at the penalty spot, twelve yards out an
 central, gives 36.9 degrees, which matches the exact value 2 x atan(4 / 12). A
 shot just in front of the centre of the goal returns an angle approaching pi.
 
+![Distance and angle validation](images/feature_validation_distance_angle.png)
+
+The top row is distance, the bottom row is angle. The left panels show the raw
+distributions: most shots come from 10 to 25 yards and from angles below 40
+degrees. In the right panels the blue bars are conversion rate by bin and the red
+line is the number of shots in each bin. Conversion falls steeply with distance,
+from above 30 percent inside a few yards to near zero beyond 30. It rises with
+angle. The far-right angle bins reach very high rates but the red line shows they
+hold almost no shots, so they are noisy and carry little weight. Both curves have
+the monotonic shape an xG model should reproduce, which is the check that the
+geometry functions are correct.
+
 ### 4.4 Context features
 
 - Body part, grouped into foot, head, and other.
@@ -187,6 +199,16 @@ parameters, which is the right test for whether added complexity earns its place
 Lower AIC and lower test log loss mean the context features add genuine,
 non-overfit signal beyond geometry.
 
+![Extended logistic coefficients](images/coefficients_extended_logistic.png)
+
+The bars are the fitted log-odds coefficients, blue where a feature raises xG and
+red where it lowers xG. Distance and angle are standardised, so their bars are
+comparable in length to the one-hot terms. A one-on-one, a foot shot, and a wide
+angle push xG up the most. Distance, a shot under pressure, and a shot from a
+corner pull it down. The signs read the way a football analyst would expect, which
+is the reason for keeping an interpretable model in the mix rather than only a
+black box.
+
 ### 6.3 Gradient boosting
 
 XGBoost on the full feature set including the freeze-frame features. Tuning is
@@ -194,6 +216,14 @@ light and uses group-aware cross-validation, with GroupKFold on match id so the
 same match never sits in both a training and validation fold. The selected
 settings were a max depth of 2, a learning rate of 0.03, and 200 trees, with a
 cross-validated log loss of 0.2631.
+
+![XGBoost feature importance](images/xgboost_feature_importance.png)
+
+Gain-based importance for the top features. Angle and distance lead, followed by
+whether the shot was a foot shot, the number of defenders in the cone, whether the
+shooter was under pressure, and the goalkeeper's distance from goal. The two
+freeze-frame features earn real weight, which is the practical reason the boosted
+model pulls closer to StatsBomb than the geometry-only baseline can.
 
 ## 7. Evaluation
 
@@ -210,6 +240,8 @@ The ordering is consistent across all three metrics and moves toward the StatsBo
 reference at each step.
 
 ### 7.1 Calibration
+
+![Calibration curves](images/calibration_curves.png)
 
 The reliability diagram is the most important plot in the notebook. Points on the
 diagonal mean predicted xG equals observed conversion in that bin. All three
@@ -246,6 +278,33 @@ models, which can see defenders in the cone and the keeper's distance, track
 StatsBomb more tightly. The largest disagreements are exactly the shots where
 off-ball context matters most, such as point-blank chances with defenders on the
 line and clear one-on-ones.
+
+![Our xG against StatsBomb xG](images/benchmark_vs_statsbomb.png)
+
+Each panel plots one model's per-shot xG against StatsBomb's, with the dashed line
+marking exact agreement. The correlation rises from 0.735 for the baseline to
+0.838 for the extended model and 0.899 for XGBoost. The baseline sits mostly below
+the line at the high end, because without off-ball context it cannot rate a clear
+chance as highly as StatsBomb does, so its points compress toward the middle. The
+boosted model sits much tighter around the line.
+
+### 7.4 Shot map and xG surface
+
+![Test-set shot map](images/shot_map.png)
+
+The shot map places every test-set shot on the pitch, sized and coloured by the
+extended model's predicted xG, with goals marked as red-edged stars. The high-xG
+points cluster in the six yard box and centrally, and most goals sit in that same
+region. This is the calibration result seen on the pitch rather than in a chart.
+
+![xG surface](images/xg_surface.png)
+
+The xG surface is the baseline model's predicted goal probability evaluated across
+the attacking half. It makes the model's geometry explicit. Probability is highest
+right in front of goal and falls off with distance, and the contours pinch inward
+toward the byline near each post, which is the angle term at work. A shot from wide
+near the goal line is worth less than one from the same distance centrally, exactly
+as the coefficients say.
 
 ## 8. What drives xG
 
