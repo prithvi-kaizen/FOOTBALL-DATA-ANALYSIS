@@ -1,0 +1,18 @@
+# Python environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.claude/
+
+# Old scratch working directory (superseded by expected-goals-model/)
+/xG/
+
+# Generated artifacts (regenerable by running the notebooks)
+**/data_cache/
+**/models/

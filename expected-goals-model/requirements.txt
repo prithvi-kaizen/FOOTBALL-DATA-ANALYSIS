@@ -1,0 +1,19 @@
+# Versions used to build and run xg_model_from_scratch.ipynb (Python 3.12).
+# Pinned for reproducibility. numpy/scipy/pandas are kept ABI-compatible with
+# each other; an older numpy (1.26) against these scipy/pandas builds will break.
+numpy==2.4.6
+pandas==3.0.3
+scipy==1.17.1
+scikit-learn==1.9.0
+matplotlib==3.10.9
+mplsoccer==1.6.1
+statsbombpy==1.19.0
+xgboost==3.3.0
+lightgbm==4.6.0
+pyarrow==24.0.0
+joblib==1.5.3
+
+# For running the notebook itself
+jupyter
+ipykernel
+nbconvert
